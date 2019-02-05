@@ -9,10 +9,13 @@ if [[ "${VARIANT}" == "raspbian" ]]; then
   rm -f /tmp/raspbian.public.key
 fi
 
+# add in the swift dev stuff
+echo 'deb http://http.us.debian.org/debian/ stretch-backports main' > /etc/apt/sources.list.d/llvm.list
+
 # upgrade to latest Debian package versions
 apt-get update
 apt-get upgrade -y
-
+apt-get install -y clang-6.0 lldb-6.0 llvm-6.0
 
 ### configure network ###
 
