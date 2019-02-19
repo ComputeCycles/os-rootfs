@@ -9,17 +9,16 @@ if [[ "${VARIANT}" == "raspbian" ]]; then
   rm -f /tmp/raspbian.public.key
 fi
 
-# add in the swift dev stuff
-echo 'deb http://http.us.debian.org/debian/ stretch-backports main' > /etc/apt/sources.list.d/llvm.list
-
 # upgrade to latest Debian package versions
 apt-get update
+apt-mark hold console-setup
 apt-get upgrade -y
-apt-get install -y clang-6.0 lldb-6.0 llvm-6.0
+apt-get install ntp dhcpcd5 apt-transport-https openvp docker-ce
 
 ### configure network ###
 
 # set ethernet interface eth0 to dhcp
+mkdir -p /etc/network/interfaces.d
 tee /etc/network/interfaces.d/eth0 << EOF
 allow-hotplug eth0
 iface eth0 inet dhcp

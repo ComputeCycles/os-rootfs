@@ -24,8 +24,9 @@ HYPRIOT_OS_VERSION="${HYPRIOT_OS_VERSION:-dirty}"
 ROOTFS_DIR="/debian-${BUILD_ARCH}"
 DEBOOTSTRAP_URL="http://ftp.debian.org/debian"
 DEBOOTSTRAP_KEYRING_OPTION=""
-DEFAULT_PACKAGES_INCLUDE="apt-transport-https,avahi-daemon,bash-completion,binutils,ca-certificates,curl,git-core,htop,locales,net-tools,ntp,openssh-server,parted,sudo,usbutils,wget,libpam-systemd"
-DEFAULT_PACKAGES_EXCLUDE="debfoster"
+DEBOOTSTRAP_RELEASE="stretch"
+DEFAULT_PACKAGES_INCLUDE="avahi-daemon,bash-completion,binutils,ca-certificates,curl,git,htop,locales,net-tools,openssh-server,parted,sudo,usbutils,wget,libpam-systemd"
+DEFAULT_PACKAGES_EXCLUDE="debfoster,console-setup"
 
 if [[ "${VARIANT}" = "raspbian" ]]; then
   DEBOOTSTRAP_URL="http://raspbian.raspberrypi.org/raspbian/"
@@ -36,6 +37,12 @@ if [[ "${VARIANT}" = "raspbian" ]]; then
   wget -v -O "/builder/files/tmp/raspbian.public.key" http://raspbian.raspberrypi.org/raspbian.public.key
   get_gpg A0DA38D0D76E8B5D638872819165938D90FDDD2E "/builder/files/tmp/raspbian.public.key"
 
+fi
+
+if [[ "${VARIANT}" = "ubuntu" ]]; then
+    DEBOOTSTRAP_URL="http://ports.ubuntu.com/ubuntu-ports"
+    DEBOOTSTRAP_RELEASE="bionic"
+    ROOTFS_DIR="/ubuntu-${BUILD_ARCH}"
 fi
 
 # show TRAVIS_TAG in travis builds
@@ -61,7 +68,7 @@ ${DEBOOTSTRAP_CMD} \
   --arch="${BUILD_ARCH}" \
   --include="${DEFAULT_PACKAGES_INCLUDE}" \
   --exclude="${DEFAULT_PACKAGES_EXCLUDE}" \
-  stretch \
+  ${DEBOOTSTRAP_RELEASE} \
   "${ROOTFS_DIR}" \
   "${DEBOOTSTRAP_URL}"
 
@@ -71,8 +78,13 @@ cp -R /builder/files/* "$ROOTFS_DIR/"
 # only keep apt/sources.list files that we need for the current build
 if [[ "$VARIANT" == "debian" ]]; then
   rm -f "$ROOTFS_DIR/etc/apt/sources.list.raspbian.stretch"
+  rm -f "$ROOTFS_DIR/etc/apt/sources.list.ubuntu.bionic"
 elif [[ "$VARIANT" == "raspbian" ]]; then
   mv -f "$ROOTFS_DIR/etc/apt/sources.list.raspbian.stretch" "$ROOTFS_DIR/etc/apt/sources.list"
+  rm -f "$ROOTFS_DIR/etc/apt/sources.list.ubuntu.bionic"
+elif [[ "$VARIANT" == "ubuntu" ]]; then
+  mv -f "$ROOTFS_DIR/etc/apt/sources.list.ubuntu.bionic" "$ROOTFS_DIR/etc/apt/sources.list"
+  rm -f "$ROOTFS_DIR/etc/apt/sources.list.raspbian.stretch"
 fi
 
 # set up mount points for the pseudo filesystems
